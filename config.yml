@@ -1,0 +1,325 @@
+# Pandemic Estimation Configuration
+# ------------------------------------------------------------------------------------
+# This configuration file controls the pandemic estimation modeling pipeline. 
+# There are four main sections:
+#   - default:     Base configuration for main analysis
+#   - validation:  Configuration for model validation
+#   - sensitivity: Configuration for sensitivity analysis
+#   - development/production: Environment-specific configurations
+
+
+default:
+  # ===================================================================================
+  # Default Configuration
+  # ===================================================================================
+  # General settings
+  pop_reference: !expr 8.2e9                            # Reference population size
+  pop_min: !expr 1e4                                    # Minimum population value
+  deaths_unit: !expr 1e3                                # Unit for death counts
+  base_year: 1600                                       # Base year for analysis
+  file_path: "data/epidemics_data_2025.csv"   # Input data file path
+  
+  # Analysis parameters
+  variables:
+    - deaths_scaled                                     # Primary variable to analyze
+  method: "mev"                                         # Extreme value method
+  bulk_distribution: "lognormal"                          # Distribution for bulk component
+  respiratory_only: false                               # Whether to analyze only respiratory pandemics
+  
+  # Burden calculation settings
+  calc_burden: true                                     # Enable burden calculation
+  calc_dalys: true                                      # Enable DALY estimation
+  calc_scenarios: true                                  # Enable scenario calculations
+  scenario_window: 75                                   # Window size for extreme rate periods
+  
+  # Model options
+  use_constrained_model: true                           # Use constrained mixture model
+  
+  # Constrained optimization parameters
+  constrained_optimization:
+    method: "augmented_lagrangian"                      # Method: "penalty", "augmented_lagrangian", or "barrier"
+    verbose: false                                      # Silent by default, set to true for debugging output
+    penalty_weights:
+      lognormal:
+        lower: 1000                                     # Penalty weight for lower bound constraint
+        upper: 1000                                     # Penalty weight for upper bound constraint
+      weibull:
+        lower: 1000                                     # Penalty weight for lower bound constraint
+        upper: 1000                                     # Penalty weight for upper bound constraint
+    max_iter: 1000                                      # Maximum optimization iterations
+    tolerance: 1e-6                                     # Convergence tolerance
+    adaptive_penalty: true                              # Adaptively increase penalty weights if needed
+  
+  # Threshold settings
+  thresholds:
+    deaths_scaled: !expr 3e6                          # Population-scaled death threshold
+    lower_cutoff_deaths_scaled: !expr 1e5               # Lower cutoff for scaled deaths
+    lower_cutoff: !expr 1e5                             # Legacy lower cutoff parameter
+  
+  # Draw parameters
+  draws: 10000                                     # Number of draws for uncertainty quantification
+  seed: 12345                                            # Random seed for reproducibility
+  seeds:
+    secondary: 42                                        # Secondary fixed seed used in rate/trend helpers
+    util: 123                                            # Legacy small reproducibility seed in upload prep
+  
+  # Bootstrap parameters
+  bootstrap:
+    enabled: true                                       # Enable bootstrap analysis
+    plot: true                                          # Generate bootstrap plots
+    plot_xi: false
+  
+  # Window analysis
+  window:
+    sizes: [10, 15, 20, 25, 30, 35, 40]                 # Window sizes to test
+    default_size: 25                                    # Default window size
+  
+  # Time series parameters
+  time:
+    future_years: 75                                    # Years to forecast
+    prediction_interval: true                           # Generate prediction intervals
+    use_time_trend: true                                # Use time trend in forecasts
+    model_type: "linear"                                # Time trend model type
+    current_year: 2025                                  # Reference year for forecasts
+    generate_draws: true                                # Generate prediction draws
+
+  # Bulk diagnostics (script-specific overrides for fixed thresholds)
+  bulk_diagnostics:
+    tail_threshold_fixed: !expr 2.8e6                   # Historically fixed tail threshold used in bulk_diagnostics.R
+    lower_thresholds: [50000, 75000, 100000, 125000, 150000]  # Candidate lower cutoffs to test
+  
+  # Plotting parameters
+  plots:
+    descriptive: true                                   # Generate descriptive plots
+    tail: false                                         # Generate tail plots
+    tail_mixture: true                                  # Generate mixture model plots
+    tail_mixture_y_title: "Historical probability of exceeding\npopulation-scaled deaths"
+    bins: 40                                            # Histogram bin count
+    log_scale: true                                     # Use log scale for plots
+    forecast: true                                      # Generate forecast plots
+    tail_limit: !expr 1e5                               # Lower limit for tail plots
+    time_trend: true                                    # Plot time trends
+    time_scaled_deaths: true                            # Generate time-scaled death plots
+    time_scaled_deaths_labels: false                    # Include title, subtitle, and caption in time-scaled deaths plot
+    validation_plot_labels: false                       # Include title, subtitle, and caption in validation plot
+    draw_plot_labels: false                             # Include title, subtitle, and caption in draws plot
+    rate_extremes: false                                 # Plot rate extremes
+    scenario_comparison: false                           # Generate scenario comparison plots
+    scenario_rate_draws: true
+    log_breaks_major: [10, 100, 1000, 10000]             # Major breaks for log-scaled axes
+    point_size: 2                                       # Size of empirical data points in mixture plots
+    severity_marker_height: 0.005                       # Height of expected severity vertical marker
+
+  tables:
+    projection_years: 75                                 # Default period length for summary/scenario tables
+
+validation:
+  # ===================================================================================
+  # Validation Configuration
+  # ===================================================================================
+  inherit: default                                      # Inherit from default configuration
+  
+  # General settings
+  pop_reference: !expr 2.59e9                           # Reference population for validation
+  
+  # Analysis parameters
+  calc_burden: false                                    # Disable burden calculation
+  calc_scenarios: false                                 # Disable scenario calculation
+  
+  # Bootstrap settings
+  bootstrap:
+    plot: false                                         # Disable bootstrap plots
+    plot_xi: false
+    
+  # Time settings
+  time:
+    current_year: 1950                                  # Validation end year
+  
+  # Validation specific parameters
+  train_year_start: 1600                                # Training period start
+  train_year_end: 1950                                  # Training period end
+  test_year_start: 1950                                 # Testing period start
+  test_year_end: 2025                                   # Testing period end
+  window_size: 25                                       # Window size for validation
+  threshold_deaths_scaled: !expr 0.786             # Scaled death threshold
+  observation_years: [1960, 1970, 1980, 1990, 2000, 2010, 2020, 2025]  # Years for observation comparison
+  
+  plots:
+    descriptive: false                                  # Disable descriptive plots
+    tail: false                                         # Disable tail plots
+    tail_mixture: false                                 # Disable mixture plots
+    log_scale: false                                    # Disable log scale
+    forecast: false                                     # Disable forecast plots
+    time_trend: false                                   # Disable time trend plots time_scaled_deaths: false                           # Disable time-scaled plots
+    time_scaled_deaths: false
+    rate_extremes: false                                # Disable rate extreme plots
+    scenario_comparison: false                          # Disable scenario comparison
+
+sensitivity:
+  # ===================================================================================
+  # Sensitivity Analysis Configuration
+  # ===================================================================================
+  inherit: default                                      # Inherit from default configuration
+  
+  # Override draws for sensitivity (reduced for speed)
+  draws: 1000                                            # Reduced draws for sensitivity analysis
+  seed: 54321                                           # Random seed for sensitivity analysis
+  
+  # Bootstrap settings
+  bootstrap:
+    plot: false                                         # Disable bootstrap plots
+    plot_xi: false
+  
+  # Plotting parameters
+  plots:
+    descriptive: false                                  # Disable descriptive plots
+    tail: false                                         # Disable tail plots
+    forecast: false                                     # Disable forecast plots
+    tail_mixture: false                                 # Disable mixture plots
+    time_trend: false                                   # Disable time trend plots
+    time_scaled_deaths: false                           # Disable time-scaled plots
+    time_scaled_deaths_labels: false                    # Include title, subtitle, and caption in time-scaled deaths plot
+    validation_plot_labels: false                       # Include title, subtitle, and caption in validation plot
+    draw_plot_labels: false                             # Include title, subtitle, and caption in draws plot
+    rate_extremes: false                                # Disable rate extreme plots
+    scenario_comparison: false                          # Disable scenario comparison
+  
+  # Parallel processing settings
+  parallel:
+    enabled: true                                       # Enable parallel processing
+    strategy: "future"                                  # Parallel strategy (future, foreach, none)
+    workers: 8                                       # Number of workers (null = auto detect)
+  
+  # Sensitivity analysis parameters
+  sens:
+    year:
+      start_idx: 10                                     # Start index for year range
+      end_idx: 60                                       # End index for year range
+      cutoff: 1600                                      # Year cutoff value
+      base_year: 1600                                   # Base year for analysis
+      base_thresholds:
+        deaths_scaled: !expr 3e6                      # Base scaled death threshold
+    
+    threshold:
+      quantile_limit: 0.85                              # Upper quantile limit
+      skip_first: 60                                    # Skip initial observations
+      base_thresholds:
+        deaths_scaled: !expr 3e6                        # Base scaled death threshold
+        
+    # Combined cutoff-threshold analysis settings
+    combined:
+      enabled: true                                     # Enable combined sensitivity analysis
+      max_combinations: 400                             # Maximum number of combinations to test (for performance)
+      plots:
+        heatmap: true                                   # Generate heatmap visualization
+
+diagnostics:
+  # ===================================================================================
+  # Model Diagnostics Configuration
+  # ===================================================================================
+  inherit: default                                      # Inherit from default configuration
+  
+  # General settings
+  pop_reference: !expr 8.2e9                            # Reference population size
+  pop_min: !expr 1e4                                    # Minimum population value
+  base_year: 1600                                       # Base year for analysis
+  file_path: "data/merged_strawberry_pop_cleaned.csv"   # Input data file path
+  
+  # Analysis parameters
+  variables:
+    - deaths_scaled                                     # Primary variable to analyze
+  method: "mev"                                         # Extreme value method
+  bulk_distribution: "lognormal"                        # Distribution for bulk component
+  use_constrained_model: true                           # Use constrained mixture model
+  
+  # Threshold settings
+  thresholds:
+    deaths_scaled: !expr 2.8e6                          # Population-scaled death threshold
+    lower_cutoff_deaths_scaled: !expr 2e5               # Lower cutoff for scaled deaths
+    lower_cutoff: !expr 2e5                             # Legacy lower cutoff parameter
+  
+  # Override draws for diagnostics (reduced for efficiency)  
+  draws: 200                                            # Reduced draws for diagnostics
+  seed: 98765                                           # Random seed for diagnostics
+  
+  # Bootstrap parameters - reduced for diagnostic efficiency
+  bootstrap:
+    enabled: true                                       # Enable bootstrap analysis
+    plot: false                                         # Disable bootstrap plots
+  
+  # Burden calculation settings - disabled for diagnostics
+  calc_burden: false                                    # Disable burden calculation
+  calc_dalys: false                                     # Disable DALY estimation
+  calc_scenarios: false                                 # Disable scenario calculations
+  
+  # Plotting parameters - all disabled for diagnostics
+  plots:
+    descriptive: false                                  # Disable descriptive plots
+    tail: false                                         # Disable tail plots
+    tail_mixture: false                                 # Disable mixture plots
+    forecast: false                                     # Disable forecast plots
+    time_trend: false                                   # Disable time trend plots
+    time_scaled_deaths: false                           # Disable time-scaled plots
+    time_scaled_deaths_labels: false                    # No labels needed
+    validation_plot_labels: false                       # No labels needed
+    draw_plot_labels: false                             # No labels needed
+    rate_extremes: false                                # Disable rate extreme plots
+    scenario_comparison: false                          # Disable scenario comparison
+    scenario_rate_draws: false                          # Disable rate draw plots
+  
+  # Diagnostic-specific parameters
+  diagnostics:
+    threshold_selection:
+      n_thresholds: 25                                  # Number of thresholds to test
+      generate_plots: true                              # Generate threshold diagnostic plots
+      min_exceedances: 5                                # Minimum exceedances for GPD fitting
+    
+    goodness_of_fit:
+      generate_plots: true                              # Generate GOF diagnostic plots
+      statistical_tests: true                           # Run formal statistical tests
+    
+    mixture_components:
+      generate_plots: true                              # Generate component diagnostic plots
+      weight_stability_test: true                       # Test weight stability
+    
+    bootstrap_stability:
+      generate_plots: true                              # Generate bootstrap diagnostic plots
+      convergence_threshold: 0.8                        # Minimum convergence rate
+    
+    cross_validation:
+      method: "leave_one_out"                           # CV method for small samples
+      generate_plots: true                              # Generate CV diagnostic plots
+      k_folds: 5                                        # K for k-fold CV (if used)
+    
+    publication_tables:
+      generate_summary: true                            # Generate diagnostic summary table
+      generate_threshold_table: true                    # Generate threshold selection table
+      format_style: "publication"                       # Table formatting style
+
+gbd_preprocessing:
+  # ===================================================================================
+  # GBD Data Preprocessing Configuration
+  # ===================================================================================
+  # This section controls the preprocessing of GBD (Global Burden of Disease) data
+  # used to generate DALY-to-death ratios for global burden calculations.
+  # This is run independently before the main pandemic modeling pipeline.
+  
+  # GBD draw parameters
+  gbd_draws:
+    release_id: 16                                      # GBD release ID
+    age_group_id: 22                                    # All ages
+    sex_id: 3                                           # Both sexes
+    measure_ids: [1, 2]                                 # Deaths (1) and DALYs (2) 
+    metric_id: 1                                        # Number
+    cause_ids:
+      covid: 1048                                       # COVID-19 cause ID
+      hiv: 298                                          # HIV/AIDS cause ID
+    year_ranges:
+      covid: !expr 2020:2025                            # COVID-19 years
+      hiv: !expr 1990:2025                              # HIV years
+  
+  # Output files generated by preprocessing
+  outputs:
+    global_daly_ratio: "data/daly_death_ratio_draws.rds"
+    dalys_draws: "data/dalys_draws.rds"
+    deaths_draws: "data/deaths_draws.rds"

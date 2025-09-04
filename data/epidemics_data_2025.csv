@@ -1,0 +1,125 @@
+﻿ name                                           , location                                         , start_year , end_year , deaths  , est_low , est_upp , pop        , type            
+Plague of Athens,"Athens, Greece",-430,-426,88,75,100,50000000, Non-Respiratory 
+Antonine Plague,Roman Empire,165,180,7500,5000,10000,239463671, Non-Respiratory 
+Plague of Cyprian,Europe,249,262,310,      ,      ,234363097, Non-Respiratory 
+Plague of Justinian,"North Africa, Europe, West Asia",541,544,57500,15000,100000,260875494, Non-Respiratory 
+Plague of Amida,Amida,562,562,30,30,30,264706552, Non-Respiratory 
+Plague of Sheroe,"Sheroe, Bilad al-Sham",627,628,100,,,273449871, Non-Respiratory 
+Plague of Basra,Basra,688,689,72,,,277541224, Non-Respiratory 
+Japanese smallpox epidemic,Japan,735,737,1250,1000,1500,280979514, Respiratory     
+Black Death,Europe,1346,1353,50000,,,449836211, Non-Respiratory 
+Hispaniola Smallpox Epidemic,Hispaniola,1507,1519,200,67,333,503967860, Respiratory     
+Smallpox Epidemic in Mexico,Mexico,1519,1520,6500,5000,8000,505539441, Respiratory     
+Cocoliztli Epidemic of 1545-1548,Mexico,1545,1548,10000,5000,15000,508944534, Unknown         
+Typhus epidemic among Hungary invasion,Austrian army in Hungary,1560,1560,30,      ,      ,510909011, Non-Respiratory 
+London plague of 1563,"London, England",1563,1564,20,20,20,511301907, Non-Respiratory 
+Cocoliztli Epidemic of 1576,Mexico,1576,1578,2250,2000,2500,513004453, Non-Respiratory 
+Second Plague of Venice,Venice,1576,1577,50,      ,      ,513004453, Unknown         
+Venezuelan Smallpox Epidemic,Venezuela,1580,1580,19,18,20,513528314, Respiratory     
+London plague of 1592,"London, England",1592,1593,18,      ,      ,515099895, Non-Respiratory 
+Plague in Spain,Spain,1596,1602,650,17,19.5,515623756, Non-Respiratory 
+London Plague of 1603,London,1603,1603,33,600,700,518526894, Non-Respiratory 
+Thirty Years War Epidemic,Central Europe,1618,1649,6250,31,35,530423286, Non-Respiratory 
+London Plague of 1625,London,1625,1625,46,4500,8000,535974936, Non-Respiratory 
+Italian plague of 1629-1631,Italy (Northern),1629,1630,2000,      ,      ,539147307, Non-Respiratory 
+London Plague of 1636,London,1636,1637,13,      ,      ,544698957, Non-Respiratory 
+Spanish Plague of 1637–1640,Spain,1637,1640,20,      ,      ,544698957, Non-Respiratory 
+Spanish Plague of 1646–1652,"Seville, Spain",1646,1652,600,      ,      ,553422978, Non-Respiratory 
+Plague in Kingdom of Naples,Italy,1656,1658,1060,,,560560813, Non-Respiratory 
+Plague in Rome,Rome,1656,1657,15,550,650,560560813, Non-Respiratory 
+Smallpox Epidemic in South America,Brazil,1660,1669,64,870,1250,563733184, Non-Respiratory 
+London Typhus Epidemic of 1661-1665,London,1661,1665,15.7,      ,      ,564526277, Non-Respiratory 
+Plague in the Netherlands,"Amsterdam, Netherlands",1663,1664,25,      ,      ,566112462, Respiratory     
+Great Plague of London,"London, England",1665,1666,100,      ,      ,567698648, Non-Respiratory 
+Plague of Malta,Malta,1675,1676,11,,,575629576, Non-Respiratory 
+Spanish Plague of 1678–1682,Spain,1678,1682,250,,,578801947, Non-Respiratory 
+Plague of Vienna,"Vienna, Austria",1679,1679,76,,,578801947, Non-Respiratory 
+Plague of Prague,Prague,1681,1681,83,,,580388133, Non-Respiratory 
+Great Northern War plague outbreak,Europe,1700,1721,190,,,595456896, Non-Respiratory 
+Great Smallpox Epidemic in Iceland,Iceland,1707,1709,18,      ,      ,611220179, Non-Respiratory 
+London Typhus Epidemics of 1709-1720,London,1709,1720,41,180,200,615723974, Non-Respiratory 
+Great Plague of Marseille,"Marseille, France",1720,1722,120,18,18,648184768, Respiratory     
+Great Plague of 1738,Balkans,1730,1740,36,40.524,42.324,695962214, Non-Respiratory 
+Cocolizti epidemic of 1736,Mexico,1736,1736,40,      ,      ,689696653, Non-Respiratory 
+Dysentery Epidemic in France,France,1738,1742,200,      ,      ,695962214, Non-Respiratory 
+Irish Typhus and Dysentery Epidemic,Ireland,1740,1741,80,      ,      ,702227776, Unknown         
+French Typhus Epidemic,France,1741,1742,80,      ,      ,702227776, Non-Respiratory 
+Typhus in the Siege of Prague,Prague,1741,1741,30,      ,      ,712438080, Non-Respiratory 
+German Typhus Epidemic,Germany,1757,1763,18,      ,      ,777762272, Non-Respiratory 
+Indian Smallpox Epidemic of 1769-1770,India,1769,1770,63,      ,      ,823981837, Non-Respiratory 
+Russian plague of 1770-1772,Russia,1770,1772,76,      ,      ,827951488, Non-Respiratory 
+Dysentery Epidemic in Sweden,Sweden,1770,1775,35,      ,      ,827951488, Respiratory     
+1770s Smallpox Epidemic,Western Washington,1770,1780,11,52,100,827951488, Respiratory     
+Persian Plague,Persia,1772,1773,2000,      ,      ,827951488, Respiratory     
+French Dysentery Epidemic of 1779,France,1779,1779,175,      ,      ,893645786, Non-Respiratory 
+Smallpox Epidemic of Mexico City,Mexico City,1779,1779,18,,,893645786, Non-Respiratory 
+Pandemic Influenza,Europe,1781,1782,300,      ,      ,893645786, Respiratory     
+Tunisian Plague,Tunisia,1784,1785,18,      ,      ,917471770, Non-Respiratory 
+Egyptian Plague,Egypt,1791,1791,60,,,943524762, Non-Respiratory 
+Prussian Army Dysentery Epidemic,France - Prussian Army,1792,1792,12,      ,      ,944787827, Respiratory     
+German Smallpox Epidemic,Germany,1796,1796,65,0,0,949840090,Respiratory
+Smallpox epidemic in Britain and Ireland,Great Britain and Ireland,1796,1796,35,      ,      ,949840090, Non-Respiratory 
+British Smallpox Epidemic of 1796,Britain,1796,1796,35,      ,      ,949840090, Non-Respiratory 
+Italian Typhus Epidemics of 1796-1800,Italy,1796,1800,20,      ,      ,949840090, Respiratory     
+Mexican-Guatemalan Smallpox Epidemic,Mexico and Guatemala,1797,1798,20,      ,      ,951103155, Non-Respiratory 
+Saint-Domingue/Haitian Yellow Fever Epidemic,Hispaniola Island,1802,1803,42,      ,      ,969700352, Non-Respiratory 
+Haitian Yellow Fever Epidemic of 1802,Haiti,1802,1803,40,      ,      ,969700352, Respiratory     
+Spanish Yellow Fever Epidemics,Spain,1803,1805,26,14,25,977104352, Non-Respiratory 
+Russian smallpox epidemic,Russia,1804,1810,827,29,55,984508352, Respiratory     
+Ottoman Plague Epidemic,Ottoman Empire,1812,1819,300,      ,      ,1036270605, Non-Respiratory 
+1st Napoleon Russian Campaign Epidemics,French and Russian soldiers and civilians,1812,1812,190,      ,      ,1036270605, Non-Respiratory 
+2nd Napoleon Russian Campaign Epidemics,French and Russian soldiers and civilians,1813,1814,250,      ,      ,1039939731, Respiratory     
+Cocolizti epidemic of 1813,Mexico,1813,1815,20,,,1039939731, Non-Respiratory 
+Caragea's plague,Romania,1813,1813,60,80,300,1039939731, Non-Respiratory 
+Mexico City Typhus Epidemic,Mexico City,1813,1813,20,      ,      ,1039939731, Non-Respiratory 
+First cholera pandemic,Global,1817,1824,125,      ,      ,1054616237, Unknown         
+Irish Typhus Epidemic,Ireland,1817,1818,65,,,1054616237, Non-Respiratory 
+Irish Dysentery Epidemic,Ireland,1817,1818,45,      ,      ,1054616237, Non-Respiratory 
+Barcelona epidemic of 1821,Barcelona,1821,1821,12.5,      ,      ,1073881798, Non-Respiratory 
+Indian Kala-Azar Epidemics,India,1824,1824,75,      ,      ,1098656346, Non-Respiratory 
+Second cholera pandemic,Global,1826,1837,215,      ,      ,1115172710, Non-Respiratory 
+Egyptian Plague,Egypt,1834,1835,30,5,20,1172825062, Non-Respiratory 
+British Smallpox Epidemic of 1837-1840,Britain,1837,1840,42,      ,      ,1191289779, Non-Respiratory 
+English Typhus Epidemic of 1837-1838,Britain,1837,1838,28,      ,      ,1191289779, Non-Respiratory 
+Great Plains smallpox epidemic of 1837,"Great Plains, USA",1837,1840,17,      ,      ,1191289779, Non-Respiratory 
+Third cholera pandemic,Global,1839,1860,1250,      ,      ,1203599590, Non-Respiratory 
+Third plague pandemic,Global,1855,1960,15000,      ,      ,1316563904, Respiratory     
+Fourth cholera pandemic,Global,1863,1875,700,      ,      ,1346294707, Respiratory     
+Smallpox epidemic in Angola,Angola,1864,1864,25,1000,1500,1346361626, Non-Respiratory 
+Indian smallpox epidemic,India,1868,1884,2500,      ,      ,1346629299, Non-Respiratory 
+"Europe, Franco-Prussian War Smallpox Epidemic",Europe,1870,1875,500,,,1346763136, Non-Respiratory 
+"British Smallpox Epidemic, 1871-1872",Britain,1871,1872,42,      ,      ,1354858714, Respiratory     
+Fiji Measles outbreak,Fiji,1875,1875,40,      ,      ,1387241024, Respiratory     
+US Yellow Fever Epidemic,"USA, Lower Mississippi Valley, Ohio River Valley",1878,1879,20,      ,      ,1411527757, Respiratory     
+British India smallpox of 1888-1937,British India,1888,1937,4240,      ,      ,1524268390, Respiratory     
+Russian flu (pandemic),Global,1889,1890,1000,40,40,1536337075, Respiratory     
+Rio De Janeiro Smallpox Epidemic,"Brazil, Rio de Janeiro",1891,1908,17,      ,      ,1560628749, Non-Respiratory 
+Smallpox in Japan,Japan,1892,1897,39,      ,      ,1572851738, Respiratory     
+Hong Kong Plague,Hong Kong,1894,1894,100,1000,1000,1597297715, Respiratory     
+Plague in China,"China (Yunnan province, Canton)",1894,1894,60,      ,      ,1597297715, Respiratory     
+Congolese Sleeping Sickness Epidemic,Congo,1895,1906,500,      ,      ,1609520704, Respiratory     
+Japanese dysentery outbreak,Japan,1897,1897,20,      ,      ,1633966682, Non-Respiratory 
+Sixth cholera pandemic,"Europe, Middle East, Africa",1899,1923,8800,      ,      ,1658412659, Non-Respiratory 
+British Typhoid Epidemic in the Boer War,South Africa - British troops,1899,1902,13,      ,      ,1658412659, Non-Respiratory 
+Ugandan-Tanganyikan Sleeping Sickness Epidemic,Uganda and Tanzania,1900,1909,100,      ,      ,1670635648, Non-Respiratory 
+South African Pneumonia Epidemic,South Africa,1900,1910,40,,,1670635648, Non-Respiratory 
+Italian Whooping Cough Epidemic,Italy,1901,1905,60,      ,      ,1670635648, Non-Respiratory 
+China plague (Manchurian plague),China,1910,1911,60,      ,      ,1800219392, Respiratory     
+Austrian invasion in Serbia - Typhus,Serbia,1914,1914,150,      ,      ,1851274496, Non-Respiratory 
+Spanish flu,Global,1918,1920,19210,,,1902329600, Respiratory     
+WWI and Russian Revolution - Typhus,Russia,1918,1922,2500,      ,      ,1902329600, Respiratory     
+Encephalitis lethargica pandemic,Global,1919,1930,500,      ,      ,1915093376, Unknown         
+Nigerian Meningitis Epidemic,Nigeria,1921,1921,45,15290,24020,1945712051, Non-Respiratory 
+Malian Relapsing Fever Epidemic,Mali,1921,1922,15,2000,3000,1945712051, Non-Respiratory 
+Sudanese Relapsing Fever Epidemic,Sudan,1926,1928,200,      ,      ,2034986547, Respiratory     
+"Chinese Cholera Epidemic, 1932",China,1932,1933,32,,,2150816922, Respiratory     
+Diptheria epidemic in Europe,"Europe, outside Russia",1943,1943,50,,,2377849875, Non-Respiratory 
+Cholera epidemic in India and Bangladesh,Bangladesh and India,1950,1960,700,,,2493092843, Non-Respiratory 
+Asian flu,Global,1957,1958,1100,,,2852618346, Non-Respiratory 
+Hong Kong flu,Global,1968,1969,2500,,,3545187239, Respiratory     
+Smallpox epidemic of India,India,1974,1974,26,,,3996416108, Non-Respiratory 
+HIV/AIDS pandemic,Global,1981,2024,37506,,,4528777285, Non-Respiratory 
+Southern Sudan visceral leishmaniasis epidemic,Southern Sudan,1983,1994,100,1000,4000,4697327604, Respiratory     
+Swine Flu,Global,2009,2009,201,      ,      ,6932766459, Respiratory     
+Ebola in West Africa,West Africa,2013,2016,11,35700,51100,7291793608, Respiratory     
+2019-20 COVID-19 Pandemic,Global,2019,2024,17213,95.548,112.096,7811293714, Non-Respiratory 
