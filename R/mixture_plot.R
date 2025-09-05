@@ -75,7 +75,8 @@ truncated_bulk_tail_plot <- function(data, variable, mixture_fit, pop_ref,
                                      expected_severity = NULL,
                                      param_draws = NULL, show_uncertainty = TRUE, 
                                      ci_level = 0.95, ci_alpha = 0.2, point_size = 3,
-                                     severity_marker_height = 0.015) {
+                                     severity_marker_height = 0.015,
+                                     output_dir = NULL, conf = NULL) {
   # Extract parameters from mixture fit
   lower_cutoff <- mixture_fit$lower_cutoff # Lower threshold
   u_best <- mixture_fit$tail_threshold # Upper threshold (GPD threshold)
@@ -718,5 +719,10 @@ truncated_bulk_tail_plot <- function(data, variable, mixture_fit, pop_ref,
     p <- p + coord_cartesian(lim = c(0, y_limit))
   }
 
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, "mixture_model_plot", output_dir, conf, width = 12, height = 8)
+  
   print(p)
+  
+  invisible(p)
 }

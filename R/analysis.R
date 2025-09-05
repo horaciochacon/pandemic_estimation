@@ -45,7 +45,8 @@ run_analysis <- function(
     year = NULL,
     lower_cutoff = NULL,
     return_severity_draws = FALSE,
-    return_cumulative_draws = FALSE) {
+    return_cumulative_draws = FALSE,
+    output_dir = NULL) {
   #--------------------------------------------------
   # 1. DATA PREPARATION AND FILTERING
   #--------------------------------------------------
@@ -70,14 +71,15 @@ run_analysis <- function(
 
   # Generate descriptive plots if enabled
   if (conf$plots$descriptive) {
-    print(create_descriptive_plots(data, variable))
+    print(create_descriptive_plots(data, variable, output_dir = output_dir, conf = conf))
   }
 
   # Generate time-scaled deaths plot if enabled
   if (conf$plots$time_scaled_deaths) {
     print(plot_time_scaled_deaths(data, conf$thresholds$lower_cutoff,
       reference_year = conf$time$current_year,
-      include_labels = conf$plots$time_scaled_deaths_labels
+      include_labels = conf$plots$time_scaled_deaths_labels,
+      output_dir = output_dir, conf = conf
     ))
   }
 
@@ -202,7 +204,8 @@ run_analysis <- function(
         beta = model_results$tail$beta,
         pop_ref = conf$pop_reference,
         shadow = model_results$mean,
-        tail_limit = conf$plots$tail_limit
+        tail_limit = conf$plots$tail_limit,
+        output_dir = output_dir, conf = conf
       )
     }
 
@@ -230,7 +233,8 @@ run_analysis <- function(
         conf = conf,
         mixture_pe = model_results$mean,
         u_best = u_best,
-        summary = specs
+        summary = specs,
+        output_dir = output_dir
       )
 
       # Add bootstrap results to results list
@@ -279,7 +283,8 @@ run_analysis <- function(
         show_uncertainty = conf$bootstrap$enabled && !is.null(bootstrap_param_draws),
         shade_regions = FALSE,
         point_size = if (!is.null(conf$plots$point_size)) conf$plots$point_size else 3,
-        severity_marker_height = if (!is.null(conf$plots$severity_marker_height)) conf$plots$severity_marker_height else 0.015
+        severity_marker_height = if (!is.null(conf$plots$severity_marker_height)) conf$plots$severity_marker_height else 0.015,
+        output_dir = output_dir, conf = conf
       )
     }
 
@@ -308,7 +313,8 @@ run_analysis <- function(
         severity_draws = boot_results$severity_draws,
         conf = conf,
         return_yearly_deaths_draws = return_severity_draws,
-        window_sizes = conf$window$default_size
+        window_sizes = conf$window$default_size,
+        output_dir = output_dir
       )
 
       if (conf$plots$forecast) {
@@ -378,7 +384,9 @@ run_analysis <- function(
         if (need_plot) {
           rate_extremes_plot <- plot_rate_extremes(
             extreme_periods = rate_extremes,
-            threshold_value = conf$thresholds$lower_cutoff
+            threshold_value = conf$thresholds$lower_cutoff,
+            output_dir = output_dir,
+            conf = conf
           )
           print(rate_extremes_plot)
         }
@@ -420,7 +428,8 @@ run_analysis <- function(
           fixed_rate = highest_rate, # Override rate with highest observed
           severity_draws = boot_results$severity_draws,
           conf = conf,
-          return_yearly_deaths_draws = return_severity_draws
+          return_yearly_deaths_draws = return_severity_draws,
+          output_dir = output_dir
         )
 
         # Calculate best-case scenario using lowest historical pandemic rate
@@ -441,7 +450,8 @@ run_analysis <- function(
           fixed_rate = lowest_rate, # Override with lowest observed rate
           severity_draws = boot_results$severity_draws,
           conf = conf,
-          return_yearly_deaths_draws = return_severity_draws
+          return_yearly_deaths_draws = return_severity_draws,
+          output_dir = output_dir
         )
 
         # Compile scenario results

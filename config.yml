@@ -113,6 +113,14 @@ default:
   tables:
     projection_years: 75                                 # Default period length for summary/scenario tables
 
+  # Output management
+  output:
+    save_plots: true                                     # Save plots to timestamped directories
+    save_tables: true                                    # Save tables to timestamped directories
+    base_directory: "output"                             # Base output directory
+    use_timestamps: true                                 # Use timestamped subdirectories
+    plot_formats: ["svg"]                               # Formats to save plots in
+
 validation:
   # ===================================================================================
   # Validation Configuration

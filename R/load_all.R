@@ -25,6 +25,7 @@ for (p in pkgs) {
 # -----------------------------
 source_order <- c(
   "R/config_utils.R",
+  "R/output_manager.R",
   "R/transforms.R",
   "R/parallel_utils.R",
   "R/time_rate_extremes.R",
@@ -40,9 +41,7 @@ source_order <- c(
   "R/sensitivity.R",
   "R/validation.R",
   "R/analysis.R",
-  "R/mixture_plot.R",
-  "R/heatmap_sensitivity.R",
-  "R/fhs_upload_prep.R"
+  "R/mixture_plot.R"
 )
 for (f in source_order) {
   if (file.exists(f)) {

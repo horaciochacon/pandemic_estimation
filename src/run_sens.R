@@ -35,6 +35,13 @@ conf <- load_config()
 # Read and transform the pandemic data
 data <- read_transform_data(conf)
 
+# ===================================================================================
+# Setup output management
+# ===================================================================================
+# Setup script-specific timestamped output directory
+run_info <- setup_script_run("run_sens", conf)
+output_dir <- run_info$output_dir
+
 # Ensure required packages
 for (pkg in c("future", "future.apply", "foreach", "doParallel", "parallel", "viridis")) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
@@ -91,7 +98,8 @@ results_year <- sensitivity_grid |>
         plot_type = plot_type,
         conf = conf,
         strategy = parallel_strategy,
-        workers = workers
+        workers = workers,
+        output_dir = output_dir
       )
 
       # Return results for further processing
@@ -131,7 +139,8 @@ results_threshold <- sensitivity_grid |>
         plot_type = plot_type,
         conf = conf,
         strategy = parallel_strategy,
-        workers = workers
+        workers = workers,
+        output_dir = output_dir
       )
 
       # Return results for further processing
@@ -171,7 +180,8 @@ results_cutoff <- sensitivity_grid |>
         plot_type = plot_type,
         conf = conf,
         strategy = parallel_strategy,
-        workers = workers
+        workers = workers,
+        output_dir = output_dir
       )
 
       # Return results for further processing

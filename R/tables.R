@@ -223,7 +223,7 @@ format_lancet_scaled <- function(value, lower_val, upper_val, is_count = TRUE, i
 #' @param digits Number of decimal places for scaled values (default: 1)
 #' @return A string containing the markdown table with proper line breaks
 #' @export
-generate_summary_table <- function(results, period_years = NULL, save_to_file = NULL, digits = 1, conf = NULL) {
+generate_summary_table <- function(results, period_years = NULL, save_to_file = NULL, digits = 1, conf = NULL, output_dir = NULL) {
   if (is.null(period_years)) {
     period_years <- if (!is.null(conf) && !is.null(conf$tables$projection_years)) conf$tables$projection_years else getOption("pandemic.tables.projection_years", 75)
   }
@@ -359,7 +359,7 @@ generate_summary_table <- function(results, period_years = NULL, save_to_file = 
   # Print the table to console for easy copying
   cat(md_table, "\n")
 
-  # Save to file if requested
+  # Save to file if requested (legacy parameter)
   if (!is.null(save_to_file)) {
     dir_path <- dirname(save_to_file)
     if (!dir.exists(dir_path) && dir_path != ".") {
@@ -368,6 +368,9 @@ generate_summary_table <- function(results, period_years = NULL, save_to_file = 
     writeLines(md_table, save_to_file)
     message("Summary table saved to: ", save_to_file)
   }
+  
+  # Save using output manager if enabled
+  save_table_if_enabled(md_table, "summary_table.md", output_dir, conf)
 }
 
 #' Generate a scenario comparison table for pandemic model results
@@ -380,7 +383,7 @@ generate_summary_table <- function(results, period_years = NULL, save_to_file = 
 #' @param save_to_file Optional path to save the table to a markdown file
 #' @return A string containing the markdown table with proper line breaks
 #' @export
-generate_scenario_table <- function(results, period_years = NULL, save_to_file = NULL, conf = NULL) {
+generate_scenario_table <- function(results, period_years = NULL, save_to_file = NULL, conf = NULL, output_dir = NULL) {
   if (is.null(period_years)) {
     period_years <- if (!is.null(conf) && !is.null(conf$tables$projection_years)) conf$tables$projection_years else getOption("pandemic.tables.projection_years", 75)
   }
@@ -549,7 +552,7 @@ generate_scenario_table <- function(results, period_years = NULL, save_to_file =
   # Print the table to console for easy copying
   cat(md_table, "\n")
 
-  # Save to file if requested
+  # Save to file if requested (legacy parameter)
   if (!is.null(save_to_file)) {
     dir_path <- dirname(save_to_file)
     if (!dir.exists(dir_path) && dir_path != ".") {
@@ -558,6 +561,9 @@ generate_scenario_table <- function(results, period_years = NULL, save_to_file =
     writeLines(md_table, save_to_file)
     message("Scenario table saved to: ", save_to_file)
   }
+  
+  # Save using output manager if enabled
+  save_table_if_enabled(md_table, "scenario_table.md", output_dir, conf)
 }
 
 
@@ -571,7 +577,7 @@ generate_scenario_table <- function(results, period_years = NULL, save_to_file =
 #' @param save_to_file Optional path to save the table to a markdown file
 #' @return A string containing the markdown table with proper line breaks
 #' @export
-generate_validation_table <- function(validation_results, save_to_file = NULL) {
+generate_validation_table <- function(validation_results, save_to_file = NULL, output_dir = NULL, conf = NULL) {
   # Validate input
   if (is.null(validation_results$model) || is.null(validation_results$observed) || is.null(validation_results$predicted)) {
     stop("Validation results object must contain model, observed, and predicted components")
@@ -744,6 +750,9 @@ generate_validation_table <- function(validation_results, save_to_file = NULL) {
     writeLines(md_table, save_to_file)
     message("Validation table saved to: ", save_to_file)
   }
+  
+  # Save using output manager if enabled
+  save_table_if_enabled(md_table, "validation_table.md", output_dir, conf)
 
   return(md_table)
 }
@@ -757,7 +766,7 @@ generate_validation_table <- function(validation_results, save_to_file = NULL) {
 #' @param save_to_file Optional path to save the table to a markdown file
 #' @return A string containing the markdown table with proper line breaks
 #' @export
-generate_gap_table <- function(results, save_to_file = NULL) {
+generate_gap_table <- function(results, save_to_file = NULL, output_dir = NULL, conf = NULL) {
   # Validate input
   if (is.null(results$scenarios)) {
     stop("Results object must contain scenario calculations")
@@ -855,7 +864,7 @@ generate_gap_table <- function(results, save_to_file = NULL) {
   # Print the table to console
   cat(md_table, "\n")
 
-  # Save to file if requested
+  # Save to file if requested (legacy parameter)
   if (!is.null(save_to_file)) {
     dir_path <- dirname(save_to_file)
     if (!dir.exists(dir_path) && dir_path != ".") {
@@ -864,6 +873,9 @@ generate_gap_table <- function(results, save_to_file = NULL) {
     writeLines(md_table, save_to_file)
     message("Gap table saved to: ", save_to_file)
   }
+  
+  # Save using output manager if enabled
+  save_table_if_enabled(md_table, "gap_table.md", output_dir, conf)
 }
 
 #' Generate a parameter summary table for pandemic model results
@@ -876,7 +888,7 @@ generate_gap_table <- function(results, save_to_file = NULL) {
 #' @param save_to_file Optional path to save the table to a markdown file
 #' @return A string containing the markdown table with proper line breaks
 #' @export
-generate_parameter_summary <- function(results, save_to_file = NULL) {
+generate_parameter_summary <- function(results, save_to_file = NULL, output_dir = NULL, conf = NULL) {
   # Validate input
   if (is.null(results$params)) {
     stop("Results object must contain model parameters")
@@ -1181,7 +1193,7 @@ generate_parameter_summary <- function(results, save_to_file = NULL) {
   # Print the table to console
   cat(md_table, "\n")
 
-  # Save to file if requested
+  # Save to file if requested (legacy parameter)
   if (!is.null(save_to_file)) {
     dir_path <- dirname(save_to_file)
     if (!dir.exists(dir_path) && dir_path != ".") {
@@ -1190,4 +1202,7 @@ generate_parameter_summary <- function(results, save_to_file = NULL) {
     writeLines(md_table, save_to_file)
     message("Parameter summary table saved to: ", save_to_file)
   }
+  
+  # Save using output manager if enabled
+  save_table_if_enabled(md_table, "parameter_summary.md", output_dir, conf)
 }

@@ -28,6 +28,13 @@ Sys.setenv(R_CONFIG_ACTIVE = "default")
 conf <- load_config()
 
 # ===================================================================================
+# Setup output management
+# ===================================================================================
+# Setup script-specific timestamped output directory
+run_info <- setup_script_run("tail_diagnostics", conf)
+output_dir <- run_info$output_dir
+
+# ===================================================================================
 # Data preparation - identical to run_PoT.R
 # ===================================================================================
 # Read and transform the pandemic data
@@ -59,14 +66,6 @@ thresholds <- list(
 
 # Generate mean excess plot with optimized formatting for standalone presentation
 cat("Generating mean excess plot...\n")
-par(
-  mfrow = c(1, 1), # Reset to single plot layout
-  mar = c(4, 4, 2, 2), # Reduced margins since no title/subtitle
-  cex.axis = 0.8,
-  cex.lab = 1.0,
-  font.lab = 1,
-  font.axis = 1
-)
 
 # Generate the mean excess plot computation without plotting
 mrl_result <- mev::automrl(data$dual, plot = FALSE)
@@ -80,6 +79,69 @@ varX <- cumsum((xdat[-1] - meanX[-1]) * (xdat[-1] - meanX[-n])) / seq.int(1L, to
 excu <- (meanX[-n] - xdat[-1])[-(1:k)]
 weights <- (seq_len(n - 1) / varX)[-(1:k)]
 xk <- xdat[-(1:(k + 1))]
+
+# Save mean excess plot
+save_base_plot_if_enabled({
+  par(
+    mfrow = c(1, 1), # Reset to single plot layout
+    mar = c(4, 4, 2, 2), # Reduced margins since no title/subtitle
+    cex.axis = 0.8,
+    cex.lab = 1.0,
+    font.lab = 1,
+    font.axis = 1
+  )
+  
+  # Create the plot with custom axis labels and scaled axes
+  plot(
+    x = xk / 1e5, # Convert x-axis to 100,000s scale
+    y = excu / 1e6, # Convert y-axis to millions scale
+    ylab = "Mean Excess (Millions)",
+    xlab = "Threshold (100,000s Population-Scaled Deaths)",
+    pch = 16,
+    col = "#00468B",
+    cex = 0.8,
+    bty = "l",
+    axes = FALSE
+  ) # Suppress default axes to add custom ones
+  
+  # Add custom x-axis
+  axis(1, at = pretty(xk / 1e5), labels = pretty(xk / 1e5), cex.axis = 0.8)
+  # Add custom y-axis
+  axis(2, at = pretty(excu / 1e6), labels = pretty(excu / 1e6), cex.axis = 0.8)
+  # Add box around plot
+  box()
+  
+  # Add the 2.8 million threshold line (reference threshold from config)
+  abline(v = conf$thresholds$deaths_scaled / 1e5, lty = 2, col = "#ED0000", lwd = 2)
+  
+  # Calculate the fitted line coefficients (simplified from automrl source)
+  fit_subset <- xk > mrl_result$thresh
+  if (sum(fit_subset) > 0) {
+    fit <- lm(excu ~ xk, weights = weights, subset = fit_subset)
+    # Convert fitted line to scaled coordinates
+    # For scaled coordinates: y_scaled = (a + b*x) / 1e6, x_scaled = x / 1e5
+    # So: y_scaled = (a/1e6) + (b*1e5/1e6) * x_scaled
+    abline(
+      a = fit$coefficients[1] / 1e6,
+      b = fit$coefficients[2] * 1e5 / 1e6,
+      col = "#925E9F",
+      lwd = 2
+    )
+  }
+  
+  # Add grid for better readability
+  grid(col = "#E5E5E5", lty = "dotted", lwd = 0.5)
+}, "mean_excess_plot", output_dir, conf)
+
+# Also display plot interactively
+par(
+  mfrow = c(1, 1), # Reset to single plot layout
+  mar = c(4, 4, 2, 2), # Reduced margins since no title/subtitle
+  cex.axis = 0.8,
+  cex.lab = 1.0,
+  font.lab = 1,
+  font.axis = 1
+)
 
 # Create the plot with custom axis labels and scaled axes
 plot(
@@ -124,19 +186,66 @@ grid(col = "#E5E5E5", lty = "dotted", lwd = 0.5)
 
 # Generate threshold stability plot with publication formatting
 cat("Generating threshold stability plot...\n")
-par(
-  mar = c(5, 5, 4, 2),
-  cex.axis = 0.8,
-  cex.lab = 1.0,
-  cex.main = 1.0,
-  font.lab = 1,
-  font.axis = 1
-)
 
 # Generate threshold stability plot computation without plotting
 tstab_result <- mev::tstab.gpd(data$dual, thresholds$deaths_scaled, method = "profile", plot = FALSE)
 
-# Set up plots one on top of each other with optimized spacing
+# Calculate plot limits to include confidence intervals
+scale_ylim <- range(c(tstab_result$mle[, 1], tstab_result$lower[, 1], tstab_result$upper[, 1]), na.rm = TRUE)
+shape_ylim <- range(c(tstab_result$mle[, 2], tstab_result$lower[, 2], tstab_result$upper[, 2]), na.rm = TRUE)
+
+# Save threshold stability plots
+save_base_plot_if_enabled({
+  # Set up plots one on top of each other with optimized spacing
+  par(
+    mfrow = c(2, 1),
+    mar = c(3, 4, 1, 2), # Reduce top and bottom margins
+    oma = c(2, 0, 0, 0)
+  ) # Add outer margin only at bottom for shared x-label
+  
+  # First plot: Scale Parameter
+  plot(tstab_result$threshold / 1e5, tstab_result$mle[, 1],
+    xlab = "", # Remove x-label from top plot
+    ylab = "Scale Parameter",
+    type = "l",
+    col = "#00468B",
+    lwd = 2,
+    bty = "l",
+    ylim = scale_ylim
+  )
+  
+  # Add confidence intervals for scale parameter
+  lines(tstab_result$threshold / 1e5, tstab_result$lower[, 1], lty = 2, col = "#00468B")
+  lines(tstab_result$threshold / 1e5, tstab_result$upper[, 1], lty = 2, col = "#00468B")
+  
+  # Add grid and threshold line
+  grid(col = "#E5E5E5", lty = "dotted", lwd = 0.5)
+  abline(v = conf$thresholds$deaths_scaled / 1e5, lty = 2, col = "#ED0000", lwd = 2)
+  
+  # Second plot: Shape Parameter
+  plot(tstab_result$threshold / 1e5, tstab_result$mle[, 2],
+    xlab = "Threshold (100,000s Population-Scaled Deaths)",
+    ylab = "Shape Parameter",
+    type = "l",
+    col = "#925E9F",
+    lwd = 2,
+    bty = "l",
+    ylim = shape_ylim
+  )
+  
+  # Add confidence intervals for shape parameter
+  lines(tstab_result$threshold / 1e5, tstab_result$lower[, 2], lty = 2, col = "#925E9F")
+  lines(tstab_result$threshold / 1e5, tstab_result$upper[, 2], lty = 2, col = "#925E9F")
+  
+  # Add grid and threshold line
+  grid(col = "#E5E5E5", lty = "dotted", lwd = 0.5)
+  abline(v = conf$thresholds$deaths_scaled / 1e5, lty = 2, col = "#ED0000", lwd = 2)
+  
+  # Add shared x-axis label in outer margin
+  mtext("Threshold (100,000s Population-Scaled Deaths)", side = 1, outer = TRUE, line = 0.5, cex = 1.0)
+}, "threshold_stability_plot", output_dir, conf)
+
+# Also display plots interactively
 par(
   mfrow = c(2, 1),
   mar = c(3, 4, 1, 2), # Reduce top and bottom margins
@@ -144,9 +253,6 @@ par(
 ) # Add outer margin only at bottom for shared x-label
 
 # First plot: Scale Parameter
-# Calculate plot limits to include confidence intervals
-scale_ylim <- range(c(tstab_result$mle[, 1], tstab_result$lower[, 1], tstab_result$upper[, 1]), na.rm = TRUE)
-
 plot(tstab_result$threshold / 1e5, tstab_result$mle[, 1],
   xlab = "", # Remove x-label from top plot
   ylab = "Scale Parameter",
@@ -166,9 +272,6 @@ grid(col = "#E5E5E5", lty = "dotted", lwd = 0.5)
 abline(v = conf$thresholds$deaths_scaled / 1e5, lty = 2, col = "#ED0000", lwd = 2)
 
 # Second plot: Shape Parameter
-# Calculate plot limits to include confidence intervals
-shape_ylim <- range(c(tstab_result$mle[, 2], tstab_result$lower[, 2], tstab_result$upper[, 2]), na.rm = TRUE)
-
 plot(tstab_result$threshold / 1e5, tstab_result$mle[, 2],
   xlab = "Threshold (100,000s Population-Scaled Deaths)",
   ylab = "Shape Parameter",

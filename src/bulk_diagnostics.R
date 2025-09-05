@@ -33,6 +33,13 @@ source("R/load_all.R")
 Sys.setenv(R_CONFIG_ACTIVE = "default")
 conf <- load_config()
 
+# ===================================================================================
+# Setup output management
+# ===================================================================================
+# Setup script-specific timestamped output directory
+run_info <- setup_script_run("bulk_diagnostics", conf)
+output_dir <- run_info$output_dir
+
 # Define test parameters (prefer config; fall back to historical literals to preserve behavior)
 lower_thresholds <- conf$bulk_diagnostics$lower_thresholds %||% c(50000, 75000, 100000, 125000, 150000)
 bulk_distributions <- c("lognormal", "weibull") # Distribution types to compare
@@ -242,13 +249,141 @@ cat("  AIC:", round(best_config$AIC, 1), "\n")
 cat("\n3. GENERATING DIAGNOSTIC PLOTS\n")
 cat("-------------------------------------------------------------------\n")
 
-# Create multi-panel plot showing fit quality for different configurations
-par(mfrow = c(3, 2), mar = c(4, 4, 3, 2))
-
-# Plot 1: AIC vs Lower Threshold for each distribution
+# Prepare data for plots
 plot_data_aic <- comparison_df %>%
   group_by(Distribution) %>%
   arrange(Lower_Cutoff)
+
+# Extract variables needed for Q-Q plot and goodness-of-fit tests
+best_key <- paste0(best_config$Distribution, "_", best_config$Lower_Cutoff)
+best_fit <- results_list[[best_key]]
+
+# Extract bulk data
+bulk_data <- data$deaths_scaled[data$deaths_scaled > best_config$Lower_Cutoff &
+  data$deaths_scaled <= tail_threshold]
+n_bulk <- length(bulk_data)
+
+# Generate theoretical quantiles for the fitted distribution
+p_seq <- ppoints(n_bulk)
+dist_func_name <- switch(best_config$Distribution,
+  "lognormal" = "lnorm",
+  "weibull" = "weibull"
+)
+q_fn <- match.fun(paste0("q", dist_func_name))
+
+# Calculate theoretical quantiles
+params <- best_fit$parameters
+if (is.list(params)) {
+  # Parameters stored as named list
+  if (best_config$Distribution == "lognormal") {
+    theoretical_q <- q_fn(p_seq,
+      meanlog = as.numeric(params$meanlog),
+      sdlog = as.numeric(params$sdlog)
+    )
+  } else if (best_config$Distribution == "weibull") {
+    theoretical_q <- q_fn(p_seq,
+      shape = as.numeric(params$shape),
+      scale = as.numeric(params$scale)
+    )
+  } else if (best_config$Distribution == "gamma") {
+    theoretical_q <- q_fn(p_seq,
+      shape = as.numeric(params$shape),
+      rate = as.numeric(params$rate)
+    )
+  }
+} else {
+  # Parameters might be stored as named vector (from fitdistr)
+  if (best_config$Distribution == "lognormal") {
+    theoretical_q <- q_fn(p_seq,
+      meanlog = as.numeric(params["meanlog"]),
+      sdlog = as.numeric(params["sdlog"])
+    )
+  } else if (best_config$Distribution == "weibull") {
+    theoretical_q <- q_fn(p_seq,
+      shape = as.numeric(params["shape"]),
+      scale = as.numeric(params["scale"])
+    )
+  } else if (best_config$Distribution == "gamma") {
+    theoretical_q <- q_fn(p_seq,
+      shape = as.numeric(params["shape"]),
+      rate = as.numeric(params["rate"])
+    )
+  }
+}
+
+# Calculate empirical CDF data
+ecdf_bulk <- ecdf(bulk_data)
+x_range <- seq(min(bulk_data), max(bulk_data), length.out = 500)
+empirical_cdf <- ecdf_bulk(x_range)
+
+# Calculate fitted CDF
+p_fn <- match.fun(paste0("p", dist_func_name))
+
+if (is.list(params)) {
+  if (best_config$Distribution == "lognormal") {
+    fitted_cdf_raw <- p_fn(x_range,
+      meanlog = as.numeric(params$meanlog),
+      sdlog = as.numeric(params$sdlog)
+    )
+    p_lower <- p_fn(best_config$Lower_Cutoff,
+      meanlog = as.numeric(params$meanlog),
+      sdlog = as.numeric(params$sdlog)
+    )
+    p_upper <- p_fn(tail_threshold,
+      meanlog = as.numeric(params$meanlog),
+      sdlog = as.numeric(params$sdlog)
+    )
+  } else if (best_config$Distribution == "weibull") {
+    fitted_cdf_raw <- p_fn(x_range,
+      shape = as.numeric(params$shape),
+      scale = as.numeric(params$scale)
+    )
+    p_lower <- p_fn(best_config$Lower_Cutoff,
+      shape = as.numeric(params$shape),
+      scale = as.numeric(params$scale)
+    )
+    p_upper <- p_fn(tail_threshold,
+      shape = as.numeric(params$shape),
+      scale = as.numeric(params$scale)
+    )
+  }
+} else {
+  if (best_config$Distribution == "lognormal") {
+    fitted_cdf_raw <- p_fn(x_range,
+      meanlog = as.numeric(params["meanlog"]),
+      sdlog = as.numeric(params["sdlog"])
+    )
+    p_lower <- p_fn(best_config$Lower_Cutoff,
+      meanlog = as.numeric(params["meanlog"]),
+      sdlog = as.numeric(params["sdlog"])
+    )
+    p_upper <- p_fn(tail_threshold,
+      meanlog = as.numeric(params["meanlog"]),
+      sdlog = as.numeric(params["sdlog"])
+    )
+  } else if (best_config$Distribution == "weibull") {
+    fitted_cdf_raw <- p_fn(x_range,
+      shape = as.numeric(params["shape"]),
+      scale = as.numeric(params["scale"])
+    )
+    p_lower <- p_fn(best_config$Lower_Cutoff,
+      shape = as.numeric(params["shape"]),
+      scale = as.numeric(params["scale"])
+    )
+    p_upper <- p_fn(tail_threshold,
+      shape = as.numeric(params["shape"]),
+      scale = as.numeric(params["scale"])
+    )
+  }
+}
+
+# Normalize fitted CDF to [0,1] range for the truncated distribution
+fitted_cdf <- (fitted_cdf_raw - p_lower) / (p_upper - p_lower)
+
+# Save multi-panel diagnostic plots
+save_base_plot_if_enabled({
+  # Create multi-panel plot showing fit quality for different configurations
+  par(mfrow = c(3, 2), mar = c(4, 4, 3, 2))
 
 plot(1,
   type = "n", xlim = range(lower_thresholds),
@@ -350,69 +485,6 @@ text(max(lower_thresholds), 5, "5% threshold", adj = c(1, -0.5), col = "gray50",
 grid(col = "#E5E5E5", lty = "dotted", lwd = 0.5)
 
 # Plot 5: Q-Q plot for best configuration
-best_key <- paste0(best_config$Distribution, "_", best_config$Lower_Cutoff)
-best_fit <- results_list[[best_key]]
-
-# Extract bulk data
-bulk_data <- data$deaths_scaled[data$deaths_scaled > best_config$Lower_Cutoff &
-  data$deaths_scaled <= tail_threshold]
-n_bulk <- length(bulk_data)
-
-# Debug: Print parameter structure
-cat("Debug - Best fit parameters structure:\n")
-print(str(best_fit$parameters))
-cat("Distribution:", best_config$Distribution, "\n")
-
-# Generate theoretical quantiles for the fitted distribution
-p_seq <- ppoints(n_bulk)
-dist_func_name <- switch(best_config$Distribution,
-  "lognormal" = "lnorm",
-  "weibull" = "weibull"
-)
-
-q_fn <- match.fun(paste0("q", dist_func_name))
-
-# Map parameter names to R distribution function expectations
-# Handle different parameter storage formats
-params <- best_fit$parameters
-if (is.list(params)) {
-  # Parameters stored as named list
-  if (best_config$Distribution == "lognormal") {
-    theoretical_q <- q_fn(p_seq,
-      meanlog = as.numeric(params$meanlog),
-      sdlog = as.numeric(params$sdlog)
-    )
-  } else if (best_config$Distribution == "weibull") {
-    theoretical_q <- q_fn(p_seq,
-      shape = as.numeric(params$shape),
-      scale = as.numeric(params$scale)
-    )
-  } else if (best_config$Distribution == "gamma") {
-    theoretical_q <- q_fn(p_seq,
-      shape = as.numeric(params$shape),
-      rate = as.numeric(params$rate)
-    )
-  }
-} else {
-  # Parameters might be stored as named vector (from fitdistr)
-  if (best_config$Distribution == "lognormal") {
-    theoretical_q <- q_fn(p_seq,
-      meanlog = as.numeric(params["meanlog"]),
-      sdlog = as.numeric(params["sdlog"])
-    )
-  } else if (best_config$Distribution == "weibull") {
-    theoretical_q <- q_fn(p_seq,
-      shape = as.numeric(params["shape"]),
-      scale = as.numeric(params["scale"])
-    )
-  } else if (best_config$Distribution == "gamma") {
-    theoretical_q <- q_fn(p_seq,
-      shape = as.numeric(params["shape"]),
-      rate = as.numeric(params["rate"])
-    )
-  }
-}
-
 # Create Q-Q plot
 qqplot(theoretical_q, sort(bulk_data),
   xlab = paste("Theoretical", best_config$Distribution, "quantiles"),
@@ -429,13 +501,6 @@ abline(0, 1, col = "#ED0000", lwd = 2)
 grid(col = "#E5E5E5", lty = "dotted", lwd = 0.5)
 
 # Plot 6: Empirical vs Fitted CDF for best model
-# Create empirical CDF
-ecdf_bulk <- ecdf(bulk_data)
-x_range <- seq(min(bulk_data), max(bulk_data), length.out = 500)
-empirical_cdf <- ecdf_bulk(x_range)
-
-# Calculate fitted CDF
-p_fn <- match.fun(paste0("p", dist_func_name))
 
 # Map parameter names for CDF calculation using same robust approach
 params <- best_fit$parameters
@@ -546,12 +611,10 @@ legend("bottomright",
 
 grid(col = "#E5E5E5", lty = "dotted", lwd = 0.5)
 
-# Reset plot parameters
-par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))
+  # Reset plot parameters
+  par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))
+}, "bulk_diagnostic_plots", output_dir, conf)
 
-# ===================================================================================
-# Goodness-of-fit tests
-# ===================================================================================
 cat("\n4. GOODNESS-OF-FIT TESTS FOR BEST MODEL\n")
 cat("-------------------------------------------------------------------\n")
 
@@ -959,60 +1022,73 @@ cat("  Tail weight:", round(mixture_fit$tail$tail_prob * 100, 1), "%\n")
 # ===================================================================================
 # Final Summary and Recommendations
 # ===================================================================================
-cat("\n===================================================================================\n")
-cat("BULK DIAGNOSTICS COMPLETED - FINAL RECOMMENDATIONS\n")
-cat("===================================================================================\n")
 
-cat("STATISTICAL FIT ONLY (AIC-based selection):\n")
-cat("  Distribution:", best_config$Distribution, "\n")
-cat("  Lower cutoff:", scales::comma(best_config$Lower_Cutoff), "deaths\n")
-cat("  AIC:", round(best_config$AIC, 1), "\n")
-cat("  Conditional mean:", scales::comma(round(best_config$Conditional_Mean, 0)), "deaths\n")
-cat("  Continuity error:", sprintf("%.1f%%", best_config$Lower_Continuity_Error * 100), "\n\n")
+# Capture final summary output as markdown
+final_summary <- capture.output({
+  cat("\n===================================================================================\n")
+  cat("BULK DIAGNOSTICS COMPLETED - FINAL RECOMMENDATIONS\n")
+  cat("===================================================================================\n")
 
-if (exists("best_enhanced_config") && !is.null(validation_performance) && nrow(validation_performance) > 0) {
-  cat("ENHANCED SELECTION (Statistical Fit + Predictive Performance):\n")
-  cat("  Distribution:", best_enhanced_config$Distribution, "\n")
-  cat("  Lower cutoff:", scales::comma(best_enhanced_config$Lower_Cutoff), "deaths\n")
-  cat("  AIC:", round(best_enhanced_config$AIC, 1), "\n")
-  cat("  RMSE:", ifelse(is.na(best_enhanced_config$RMSE), "Failed",
-    scales::comma(round(best_enhanced_config$RMSE, 0))
-  ), "\n")
-  cat("  MAE:", ifelse(is.na(best_enhanced_config$MAE), "Failed",
-    scales::comma(round(best_enhanced_config$MAE, 0))
-  ), "\n")
-  cat("  MAPE:", ifelse(is.na(best_enhanced_config$MAPE), "Failed",
-    paste0(round(best_enhanced_config$MAPE, 1), "%")
-  ), "\n")
-  cat("  Coverage probability:", ifelse(is.na(best_enhanced_config$Coverage_Prob), "Failed",
-    paste0(round(best_enhanced_config$Coverage_Prob, 1), "%")
-  ), "\n")
-  cat("  Composite score:", round(best_enhanced_config$Composite_Score, 2), "\n\n")
+  cat("STATISTICAL FIT ONLY (AIC-based selection):\n")
+  cat("  Distribution:", best_config$Distribution, "\n")
+  cat("  Lower cutoff:", scales::comma(best_config$Lower_Cutoff), "deaths\n")
+  cat("  AIC:", round(best_config$AIC, 1), "\n")
+  cat("  Conditional mean:", scales::comma(round(best_config$Conditional_Mean, 0)), "deaths\n")
+  cat("  Continuity error:", sprintf("%.1f%%", best_config$Lower_Continuity_Error * 100), "\n\n")
 
-  cat("RECOMMENDATION:\n")
-  if (best_enhanced_config$Distribution == best_config$Distribution &&
-    best_enhanced_config$Lower_Cutoff == best_config$Lower_Cutoff) {
-    cat("  ✓ Both statistical fit and predictive performance agree.\n")
-    cat(
-      "  ✓ RECOMMENDED: Use", best_enhanced_config$Distribution, "distribution with",
-      scales::comma(best_enhanced_config$Lower_Cutoff), "deaths lower cutoff.\n"
-    )
+  if (exists("best_enhanced_config") && !is.null(validation_performance) && nrow(validation_performance) > 0) {
+    cat("ENHANCED SELECTION (Statistical Fit + Predictive Performance):\n")
+    cat("  Distribution:", best_enhanced_config$Distribution, "\n")
+    cat("  Lower cutoff:", scales::comma(best_enhanced_config$Lower_Cutoff), "deaths\n")
+    cat("  AIC:", round(best_enhanced_config$AIC, 1), "\n")
+    cat("  RMSE:", ifelse(is.na(best_enhanced_config$RMSE), "Failed",
+      scales::comma(round(best_enhanced_config$RMSE, 0))
+    ), "\n")
+    cat("  MAE:", ifelse(is.na(best_enhanced_config$MAE), "Failed",
+      scales::comma(round(best_enhanced_config$MAE, 0))
+    ), "\n")
+    cat("  MAPE:", ifelse(is.na(best_enhanced_config$MAPE), "Failed",
+      paste0(round(best_enhanced_config$MAPE, 1), "%")
+    ), "\n")
+    cat("  Coverage probability:", ifelse(is.na(best_enhanced_config$Coverage_Prob), "Failed",
+      paste0(round(best_enhanced_config$Coverage_Prob, 1), "%")
+    ), "\n")
+    cat("  Composite score:", round(best_enhanced_config$Composite_Score, 2), "\n\n")
+
+    cat("RECOMMENDATION:\n")
+    if (best_enhanced_config$Distribution == best_config$Distribution &&
+      best_enhanced_config$Lower_Cutoff == best_config$Lower_Cutoff) {
+      cat("  ✓ Both statistical fit and predictive performance agree.\n")
+      cat(
+        "  ✓ RECOMMENDED: Use", best_enhanced_config$Distribution, "distribution with",
+        scales::comma(best_enhanced_config$Lower_Cutoff), "deaths lower cutoff.\n"
+      )
+    } else {
+      cat("  ⚠ Statistical fit and predictive performance suggest different configurations.\n")
+      cat(
+        "  ✓ RECOMMENDED: Use", best_enhanced_config$Distribution, "distribution with",
+        scales::comma(best_enhanced_config$Lower_Cutoff), "deaths lower cutoff.\n"
+      )
+      cat("  📊 Rationale: Prioritizes real-world predictive accuracy over in-sample fit.\n")
+    }
   } else {
-    cat("  ⚠ Statistical fit and predictive performance suggest different configurations.\n")
+    cat("VALIDATION RESULTS: Failed or incomplete.\n")
+    cat("RECOMMENDATION: Use AIC-based selection as fallback.\n")
     cat(
-      "  ✓ RECOMMENDED: Use", best_enhanced_config$Distribution, "distribution with",
-      scales::comma(best_enhanced_config$Lower_Cutoff), "deaths lower cutoff.\n"
+      "  ✓ RECOMMENDED: Use", best_config$Distribution, "distribution with",
+      scales::comma(best_config$Lower_Cutoff), "deaths lower cutoff.\n"
     )
-    cat("  📊 Rationale: Prioritizes real-world predictive accuracy over in-sample fit.\n")
   }
-} else {
-  cat("VALIDATION RESULTS: Failed or incomplete.\n")
-  cat("RECOMMENDATION: Use AIC-based selection as fallback.\n")
-  cat(
-    "  ✓ RECOMMENDED: Use", best_config$Distribution, "distribution with",
-    scales::comma(best_config$Lower_Cutoff), "deaths lower cutoff.\n"
-  )
-}
 
-cat("\nDiagnostic analysis completed. No results saved.\n")
-cat("===================================================================================\n")
+  cat("\nDiagnostic analysis completed.\n")
+  cat("===================================================================================\n")
+}, type = "output")
+
+# Save final summary as markdown
+save_markdown_summary(final_summary, "bulk_diagnostics_summary", output_dir, conf, 
+                     title = "Bulk Diagnostics Summary and Recommendations")
+
+# Also display to console
+for (line in final_summary) {
+  cat(line, "\n")
+}

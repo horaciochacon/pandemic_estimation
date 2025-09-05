@@ -17,7 +17,7 @@
 #'
 #' @return A ggplot object with the enhanced rate extremes visualization
 #' @export
-plot_rate_extremes <- function(extreme_periods, threshold_value) {
+plot_rate_extremes <- function(extreme_periods, threshold_value, output_dir = NULL, conf = NULL) {
   if (is.null(extreme_periods$all_windows)) {
     stop("The extreme_periods object must include all_windows data. Set return_all=TRUE when calling find_rate_extremes.")
   }
@@ -49,6 +49,10 @@ plot_rate_extremes <- function(extreme_periods, threshold_value) {
     labs(title = "Historical Variation in Pandemic Risk", subtitle = paste0(window_size, "-year sliding windows • Deaths threshold: 200k population-scaled deaths"), x = "Year", y = "Annual Exceedance Rate", caption = "Higher values indicate more frequent pandemic events exceeding the threshold.") +
     theme_minimal() +
     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 10)), plot.subtitle = element_text(size = 12, hjust = 0.5, margin = margin(b = 15)), plot.caption = element_text(size = 9, color = "gray30", hjust = 1, margin = margin(t = 10)), legend.position = "bottom", legend.title = element_text(size = 10, face = "bold"), legend.text = element_text(size = 9), axis.title.x = element_text(margin = margin(t = 10), size = 11), axis.title.y = element_text(margin = margin(r = 10), size = 11), axis.text = element_text(size = 10), panel.grid.minor = element_blank(), panel.grid.major = element_line(color = "gray90", linewidth = 0.3), panel.background = element_rect(fill = "white", color = NA), plot.background = element_rect(fill = "white", color = NA), plot.margin = margin(20, 20, 20, 20))
+  
+  # Save plot if output directory is provided
+  save_plot_if_enabled(windows_plot, "rate_extremes", output_dir, conf)
+  
   windows_plot
 }
 

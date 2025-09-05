@@ -93,7 +93,8 @@ run_parallel_sensitivity <- function(
     plot_type = "shadow",
     conf,
     strategy = "future",
-    workers = NULL) {
+    workers = NULL,
+    output_dir = NULL) {
   # ---------------------------------------------------------------------------
   # Internal helpers (non-exported) to reduce repeated code blocks
   # ---------------------------------------------------------------------------
@@ -208,10 +209,10 @@ run_parallel_sensitivity <- function(
 
   # Plot function mapping
   plot_fns <- list(
-    shadow = function(res, var, analysis_type) plot_shadow_sensitivity(res, var, analysis_type),
-    yearly = function(res, var, analysis_type) plot_yearly_deaths(res, var, analysis_type),
-    cumulative = function(res, var, analysis_type) plot_cumulative_deaths(res, var, analysis_type, conf),
-    par = function(res, var, analysis_type) plot_par_sensitivity(res, var, analysis_type)
+    shadow = function(res, var, analysis_type) plot_shadow_sensitivity(res, var, analysis_type, output_dir, conf),
+    yearly = function(res, var, analysis_type) plot_yearly_deaths(res, var, analysis_type, output_dir, conf),
+    cumulative = function(res, var, analysis_type) plot_cumulative_deaths(res, var, analysis_type, config = conf, output_dir = output_dir, conf = conf),
+    par = function(res, var, analysis_type) plot_par_sensitivity(res, var, analysis_type, output_dir, conf)
   )
 
   # Generate plot

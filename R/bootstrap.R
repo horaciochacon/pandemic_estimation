@@ -7,7 +7,7 @@
 #'
 #' @return List containing the point estimate and confidence intervals
 #' @export
-bootstrap_mixture_mean <- function(data, variable, conf, mixture_pe, u_best, summary) {
+bootstrap_mixture_mean <- function(data, variable, conf, mixture_pe, u_best, summary, output_dir = NULL) {
   # Input validation
   if (!is.data.frame(data) || nrow(data) == 0) {
     stop("Invalid input data: must be a non-empty data frame")
@@ -166,12 +166,14 @@ bootstrap_mixture_mean <- function(data, variable, conf, mixture_pe, u_best, sum
       point_estimate = point_estimate,
       mixture_pe = mixture_pe,
       ci = ci,
-      variable = variable
+      variable = variable,
+      output_dir = output_dir,
+      conf = conf
     )
   }
 
   if (conf$bootstrap$plot_xi) {
-    plot(xi, boot_means)
+    plot_xi_scatter(xi, boot_means, output_dir, conf)
   }
 
   # Return results
@@ -199,32 +201,71 @@ bootstrap_mixture_mean <- function(data, variable, conf, mixture_pe, u_best, sum
 #' @param variable Name of the variable being analyzed
 #'
 #' @noRd
-create_bootstrap_plot <- function(boot_means, point_estimate, mixture_pe, ci, variable) {
+create_bootstrap_plot <- function(boot_means, point_estimate, mixture_pe, ci, variable, output_dir = NULL, conf = NULL) {
   # Filter extreme values for better visualization
   plot_means <- boot_means[boot_means < (ci[2] * 1.1)]
 
-  # Create histogram
-  graphics::hist(
-    plot_means,
-    main = paste0("Bootstrap Distribution of ", variable, " (Mixture Model)"),
-    xlab = "Mixture Mean",
-    breaks = 50
-  )
+  # Create data frame for ggplot
+  plot_data <- data.frame(values = plot_means)
+  
+  # Create ggplot histogram
+  p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = values)) +
+    ggplot2::geom_histogram(bins = 50, fill = "lightgray", color = "black", alpha = 0.7) +
+    ggplot2::geom_vline(aes(xintercept = point_estimate, color = "Bootstrapped Estimate"), size = 1) +
+    ggplot2::geom_vline(aes(xintercept = mixture_pe, color = "Point Estimate"), size = 1) +
+    ggplot2::geom_vline(aes(xintercept = ci[1], color = "95% CI"), linetype = "dashed", size = 1) +
+    ggplot2::geom_vline(aes(xintercept = ci[2], color = "95% CI"), linetype = "dashed", size = 1) +
+    ggplot2::scale_color_manual(
+      name = "Reference Lines",
+      values = c("Bootstrapped Estimate" = "red", "Point Estimate" = "purple", "95% CI" = "blue")
+    ) +
+    ggplot2::labs(
+      title = paste0("Bootstrap Distribution of ", variable, " (Mixture Model)"),
+      x = "Mixture Mean",
+      y = "Frequency"
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(legend.position = "top")
+  
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, "bootstrap_distribution", output_dir, conf)
+  
+  # Print plot for interactive use
+  print(p)
+  
+  invisible(p)
+}
 
-  # Add reference lines
-  graphics::abline(
-    v = c(point_estimate, mixture_pe, ci[1], ci[2]),
-    col = c("red", "purple", "blue", "blue"),
-    lty = c(1, 1, 2, 2),
-    lwd = 2
-  )
-
-  # Add legend
-  graphics::legend(
-    "topright",
-    legend = c("Bootstrapped Estimate", "Point Estimate", "95% CI"),
-    col = c("red", "purple", "blue"),
-    lty = c(1, 1, 2),
-    lwd = 2
-  )
+#' Create Xi Bootstrap Scatter Plot
+#'
+#' Creates a scatter plot showing the relationship between xi parameter and bootstrap means.
+#'
+#' @param xi Vector of xi parameter values
+#' @param boot_means Vector of bootstrap mean values
+#' @param output_dir Output directory path
+#' @param conf Configuration object
+#'
+#' @noRd
+plot_xi_scatter <- function(xi, boot_means, output_dir = NULL, conf = NULL) {
+  # Create data frame for ggplot
+  plot_data <- data.frame(xi = xi, boot_means = boot_means)
+  
+  # Create ggplot scatter plot
+  p <- ggplot2::ggplot(plot_data, ggplot2::aes(x = xi, y = boot_means)) +
+    ggplot2::geom_point(alpha = 0.6, color = "steelblue") +
+    ggplot2::geom_smooth(method = "lm", se = TRUE, color = "red") +
+    ggplot2::labs(
+      title = "Bootstrap Means vs Xi Parameter",
+      x = "Xi Parameter",
+      y = "Bootstrap Means"
+    ) +
+    ggplot2::theme_minimal()
+  
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, "xi_bootstrap_scatter", output_dir, conf)
+  
+  # Print plot for interactive use
+  print(p)
+  
+  invisible(p)
 }

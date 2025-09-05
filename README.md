@@ -2,9 +2,14 @@
 
 This repository contains the complete analysis code for the paper "Examining 400 years of epidemics and pandemics" by Horacio Chacon-Torrico and Christopher J. L. Murray (Institute for Health Metrics and Evaluation, University of Washington).
 
-## Research Summary
+## Data Availability
 
-We forecast that pandemics will cause 74.9 million deaths (95% uncertainty interval 18.0–233) and 3.66 billion DALYs between 2026 and 2100, by integrating four centuries of global mortality data (105 epidemics and pandemics from 1600–2025) with extreme-value statistical models. Our approach uses a two-component mixture model combining truncated lognormal distribution for moderate events and Generalized Pareto Distribution (GPD) for extreme tail events, with time-varying occurrence rates and rigorous out-of-sample validation.
+All required data is included in the `data/` folder:
+- **Pandemic/epidemic data**: Historical mortality data from 1600-2025 (`epidemics_data_2025.csv`)
+- **Population forecasts**: IHME population projections at draw level (`pop_draws.csv`, `pop_forecast.csv`)
+- **DALY ratios**: Disability-Adjusted Life Years to death ratios (`daly_death_ratio_draws.rds`, `dalys_draws.rds`, `deaths_draws.rds`)
+
+This dataset supports all analysis sections including burden calculations, validation, and sensitivity analyses.
 
 ## Model Overview
 
@@ -16,42 +21,76 @@ We forecast that pandemics will cause 74.9 million deaths (95% uncertainty inter
 - **Bootstrap uncertainty**: 10,000 draws for complete uncertainty quantification
 - **Historical validation**: Training on pre-1950 data successfully predicts 1951-2025 pandemic mortality
 
-## Requirements
+## System Requirements
+
+**Tested Operating Systems:**
+- macOS (current version)
+- Linux Ubuntu
 
 **R Environment:**
 - R ≥ 4.0.0
-- Required packages: `tidyverse`, `mev`, `evir`, `config`, `ggplot2`, `gridExtra`, `scales`, `ggrepel`, `patchwork`, `lubridate`, `MASS`, `cowplot`, `viridis`
-- Optional packages for sensitivity analysis: `future`, `future.apply`, `foreach`, `doParallel`, `parallel`
+- Required packages (install all with command below)
+
+**Installation:**
+Install all required R packages with a single command:
+```r
+install.packages(c(
+  "tidyverse", "dplyr", "purrr", "stringr", "ggplot2", "ggrepel", "patchwork",
+  "gridExtra", "scales", "data.table", "config", "evir", "MASS", "stats",
+  "lubridate", "cowplot", "viridis", "mev",
+  # Optional packages for sensitivity analysis (parallel processing)
+  "future", "future.apply", "foreach", "doParallel", "parallel"
+))
+```
+
+**Installation time:** Approximately 5-10 minutes on a typical desktop computer.
 
 **Configuration:**
-All analysis parameters are pre-configured in `config.yml` with publication-ready default values. No manual parameter adjustment needed for reproduction.
+All analysis parameters are pre-configured in `config.yml` with publication-ready default values. No manual parameter adjustment needed for reproduction. For custom data analysis, see [Configuration Guide](CONFIG.md).
 
-## Reproducing the Analysis
+## Reproducing All Manuscript Results
 
-### Core Results (Table 1, Figures 1-3)
+### Complete Analysis (Recommended)
+To reproduce ALL manuscript results with a single command:
 ```bash
+Rscript src/run_all.R
+```
+
+**What this generates:**
+- Main results: Table 1, Figures 1-3 (pandemic burden estimates, severity distributions, rate projections)
+- Validation: Figure 4 (out-of-sample validation showing model trained on 1600-1950 predicting 1951-2025)
+- Sensitivity analysis: Extended Data Figures 5-7 (robustness across thresholds and time periods)
+- Model diagnostics: Extended Data Table 2, Figures 2-3 (bulk/tail distribution diagnostics)
+
+**Expected runtime:** ~10 minutes on MacBook Pro M1 Pro, may vary on other systems.
+
+**Output structure:**
+```
+output/run_all_2024-09-04_14-30-25/
+├── run_pot/           # Main analysis results
+├── run_validation/    # Validation results
+├── run_sens/          # Sensitivity analysis
+├── bulk_diagnostics/  # Bulk distribution diagnostics
+├── tail_diagnostics/  # Tail threshold diagnostics
+├── execution_log.csv  # Detailed run log with timing
+├── session_info.txt   # R environment information
+└── run_summary.md     # Human-readable execution summary
+```
+
+### Individual Analysis Components
+For running specific analysis sections separately:
+```bash
+# Core results only
 Rscript src/run_PoT.R
-```
-Generates main pandemic burden estimates, severity distribution plots, and rate projections.
 
-### Out-of-Sample Validation (Figure 4)
-```bash
+# Validation only  
 Rscript src/run_validation.R
-```
-Reproduces validation showing model trained on 1600-1950 data predicting 1951-2025 outcomes.
 
-### Sensitivity Analysis (Extended Data Figures 5-7)
-```bash
+# Sensitivity analysis only
 Rscript src/run_sens.R
-```
-Tests robustness across threshold choices, time periods, and cutoff values.
 
-### Model Diagnostics
-```bash
-# Bulk distribution diagnostics (Extended Data Table 2)
+# Diagnostics only
 Rscript src/bulk_diagnostics.R
-
-# Tail threshold selection (Extended Data Figures 2-3)
 Rscript src/tail_diagnostics.R
 ```
 
@@ -80,20 +119,28 @@ pandemic_estimation/
 └── README.md
 ```
 
-## Configuration Modes
+## Using Your Own Data
 
-The `config.yml` file includes multiple analysis configurations:
+To analyze different pandemic datasets, modify parameters in `config.yml` or create custom configurations. See the detailed [Configuration Guide](CONFIG.md) for:
 
-- **`default`**: Standard analysis for main results
-- **`validation`**: Out-of-sample testing parameters  
-- **`sensitivity`**: Multi-parameter sensitivity testing
+- How to specify custom data files
+- Required data format and column specifications
+- Adjusting analysis parameters for different datasets
+- Population scaling and threshold configuration
+- Output customization options
 
-Scripts automatically select appropriate configurations. Advanced users can modify parameters in `config.yml` or set environment variables:
+**Basic example for custom data:**
+```yaml
+my_analysis:
+  inherit: default
+  file_path: "data/my_pandemics.csv"
+  pop_reference: 5e9  # Your reference population
+```
 
+Then run with:
 ```bash
-# Use specific configuration
-export R_CONFIG_ACTIVE=validation
-Rscript src/run_PoT.R
+export R_CONFIG_ACTIVE=my_analysis
+Rscript src/run_all.R
 ```
 
 ## Key Parameters (Pre-configured)
@@ -108,18 +155,19 @@ Rscript src/run_PoT.R
 
 ## Expected Outputs
 
-**Main Results:**
-- Summary tables with point estimates and 95% uncertainty intervals
-- Pandemic severity distribution plots
-- Time-varying rate projections
-- Scenario comparison tables
-- DALY burden estimates
+Running `Rscript src/run_all.R` generates a comprehensive output directory with:
 
-**Validation:**
-- Out-of-sample prediction accuracy metrics
-- Observed vs. predicted cumulative mortality plots
+**Script-specific results:**
+- **run_pot/**: Main analysis results with summary tables, burden estimates, severity distribution plots, and forecasts
+- **run_validation/**: Out-of-sample validation results with prediction accuracy metrics and observed vs. predicted plots  
+- **run_sens/**: Sensitivity analysis with threshold robustness plots and parameter stability assessments
+- **bulk_diagnostics/**: Bulk distribution diagnostics with AIC/BIC comparisons and goodness-of-fit tests
+- **tail_diagnostics/**: Tail threshold selection diagnostics with stability plots and recommendations
 
-**Sensitivity Analysis:**
-- Threshold sensitivity plots
-- Robustness assessment tables
+**Session documentation:**
+- **execution_log.csv**: Detailed log with timing, status, and configuration for each analysis component
+- **session_info.txt**: Complete R session information including package versions
+- **run_summary.md**: Human-readable summary of execution results and output structure
+
+All plots are saved in SVG format for publication quality. Tables are provided in CSV format for further analysis.
 

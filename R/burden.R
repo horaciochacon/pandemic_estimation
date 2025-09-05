@@ -114,6 +114,7 @@ calc_burden <- function(
     return_severity_draws = FALSE,
     return_yearly_deaths_draws = FALSE,
     return_yearly_deaths_adjusted_draws = TRUE,
+    output_dir = NULL,
     return_forecast = FALSE,
     validation = FALSE,
     window_sizes = NULL,
@@ -619,6 +620,9 @@ calc_burden <- function(
       )
 
 
+    # Save forecast plot if output directory is provided
+    save_plot_if_enabled(p, "cumulative_deaths_forecast", output_dir, conf)
+
     # Build return object with plot
     if (use_time_trend || (!is.null(fixed_rate) && is.vector(fixed_rate) && length(fixed_rate) > 1)) {
       # Create return list with basic elements
@@ -629,6 +633,9 @@ calc_burden <- function(
 
       # Add time-trend specific elements
       if (use_time_trend) {
+        # Save rate plot if output directory is provided
+        save_plot_if_enabled(trend_analysis$plots$draw_plot, "annual_rate_plot", output_dir, conf)
+        
         return_list$rate_plot <- trend_analysis$plots$draw_plot
         return_list$rate_data <- trend_analysis$exceedance_rate_df
       }

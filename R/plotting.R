@@ -127,7 +127,7 @@ mean_excess_plot <- function(data, variable) {
 #' @param bins Integer, number of bins for histograms (default: 40)
 #' @return A ggplot object containing the combined plots
 #' @export
-create_descriptive_plots <- function(data, variable, bins = 40) {
+create_descriptive_plots <- function(data, variable, bins = 40, output_dir = NULL, conf = NULL) {
   # Generate individual plots
   p1 <- plot_histogram(data, variable, bins, log = FALSE) +
     labs(title = "Regular Histogram")
@@ -149,6 +149,9 @@ create_descriptive_plots <- function(data, variable, bins = 40) {
       theme = theme(plot.title = element_text(hjust = 0.5, size = 16))
     )
 
+  # Save plot if output directory is provided
+  save_plot_if_enabled(combined_plots, "descriptive_plots", output_dir, conf, width = 12, height = 10)
+  
   return(combined_plots)
 }
 
@@ -166,7 +169,8 @@ create_descriptive_plots <- function(data, variable, bins = 40) {
 #' @param log10 Logical, whether to use logarithmic scale for y-axis. Default is FALSE.
 #' @return None. The function prints the plot.
 tail_plot <- function(
-    data, variable, fit, xi, u_best, beta, pop_ref, shadow, tail_limit, log10 = FALSE) {
+    data, variable, fit, xi, u_best, beta, pop_ref, shadow, tail_limit, log10 = FALSE,
+    output_dir = NULL, conf = NULL) {
   # Define extension factor for plotting
   extend <- 1.5
 
@@ -270,7 +274,13 @@ tail_plot <- function(
     p <- p + scale_y_log10()
   }
 
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, paste0("tail_plot_", variable), output_dir, conf)
+  
+  # Also print for interactive use
   print(p)
+  
+  invisible(p)
 }
 
 #' Plot Time-Scaled Deaths
@@ -289,7 +299,8 @@ tail_plot <- function(
 #' @export
 plot_time_scaled_deaths <- function(data, lower_cutoff = 2e5, label_threshold = 1e7,
                                     min_year = 1600, reference_year = 2025,
-                                    include_labels = TRUE) {
+                                    include_labels = TRUE,
+                                    output_dir = NULL, conf = NULL) {
   # Filter data to include only events from min_year onwards
   data_time <- data |>
     dplyr::select(name, start_year, end_year, deaths, deaths_scaled, type) |>
@@ -439,6 +450,9 @@ plot_time_scaled_deaths <- function(data, lower_cutoff = 2e5, label_threshold = 
       stroke = 1.2 # Border thickness
     )))
 
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, "time_scaled_deaths", output_dir, conf)
+  
   return(p)
 }
 
@@ -447,7 +461,7 @@ plot_time_scaled_deaths <- function(data, lower_cutoff = 2e5, label_threshold = 
 #' Plot shadow prices sensitivity analysis
 #' @param results Data frame with sensitivity analysis results
 #' @param var Variable analyzed ("deaths" or "deaths_scaled")
-plot_shadow_sensitivity <- function(results, var, analysis_type) {
+plot_shadow_sensitivity <- function(results, var, analysis_type, output_dir = NULL, conf = NULL) {
   # Define the x-axis column based on analysis type
   x_col <- case_when(
     analysis_type == "year" ~ "year",
@@ -481,14 +495,20 @@ plot_shadow_sensitivity <- function(results, var, analysis_type) {
     p <- p + scale_x_log10()
   }
 
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, paste0("shadow_sensitivity_", var, "_", analysis_type), output_dir, conf)
+  
+  # Also print for interactive use
   print(p)
+  
+  invisible(p)
 }
 
 #' Plot yearly deaths sensitivity analysis
 #' @param results Data frame with sensitivity analysis results
 #' @param var Variable analyzed ("deaths" or "deaths_scaled")
 #' @param analysis_type Type of analysis ("year" or "threshold")
-plot_yearly_deaths <- function(results, var, analysis_type) {
+plot_yearly_deaths <- function(results, var, analysis_type, output_dir = NULL, conf = NULL) {
   # Define the x-axis column based on analysis type
   x_col <- case_when(
     analysis_type == "year" ~ "year",
@@ -530,7 +550,14 @@ plot_yearly_deaths <- function(results, var, analysis_type) {
   if (analysis_type %in% c("threshold", "cutoff")) {
     p <- p + scale_x_log10()
   }
+  
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, paste0("yearly_deaths_", var, "_", analysis_type), output_dir, conf)
+  
+  # Also print for interactive use
   print(p)
+  
+  invisible(p)
 }
 
 #' Format number as label with appropriate suffix (M for millions, k for thousands)
@@ -558,7 +585,7 @@ format_number_label <- function(value) {
 #' @param var Variable analyzed ("deaths" or "deaths_scaled")
 #' @param analysis_type Type of analysis ("year", "threshold", or "cutoff")
 #' @param config Configuration object containing analysis parameters
-plot_cumulative_deaths <- function(results, var, analysis_type, config = NULL) {
+plot_cumulative_deaths <- function(results, var, analysis_type, config = NULL, output_dir = NULL, conf = NULL) {
   # Define the x-axis column based on analysis type
   x_col <- case_when(
     analysis_type == "year" ~ "year",
@@ -745,8 +772,13 @@ plot_cumulative_deaths <- function(results, var, analysis_type, config = NULL) {
     }
   }
 
-  # Return the enhanced plot
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, paste0("cumulative_deaths_", var, "_", analysis_type), output_dir, conf)
+  
+  # Also print for interactive use
   print(p)
+  
+  invisible(p)
 }
 
 
@@ -754,7 +786,7 @@ plot_cumulative_deaths <- function(results, var, analysis_type, config = NULL) {
 #' @param results Data frame with sensitivity analysis results
 #' @param var Variable analyzed ("deaths" or "deaths_scaled")
 #' @param analysis_type Type of analysis ("year" or "threshold")
-plot_par_sensitivity <- function(results, var, analysis_type) {
+plot_par_sensitivity <- function(results, var, analysis_type, output_dir = NULL, conf = NULL) {
   # Define the x-axis column based on analysis type
   x_col <- case_when(
     analysis_type == "year" ~ "year",
@@ -795,5 +827,11 @@ plot_par_sensitivity <- function(results, var, analysis_type) {
     p <- p + scale_x_log10()
   }
 
+  # Save plot if output directory is provided
+  save_plot_if_enabled(p, paste0("parameter_sensitivity_", var, "_", analysis_type), output_dir, conf)
+  
+  # Also print for interactive use
   print(p)
+  
+  invisible(p)
 }

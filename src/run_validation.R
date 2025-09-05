@@ -40,14 +40,24 @@ data <- read_transform_data(conf)
 # Select variable for validation (first configured variable)
 variable <- conf$variables[1]
 
+# ===================================================================================
+# Setup output management
+# ===================================================================================
+# Setup script-specific timestamped output directory
+run_info <- setup_script_run("run_validation", conf)
+output_dir <- run_info$output_dir
+
 # Run model validation process
-validation_results <- validate_model(data, variable, conf)
+validation_results <- validate_model(data, variable, conf, output_dir = output_dir)
 
 # ===================================================================================
 # Results generation and output
 # ===================================================================================
 # Generate validation summary table
-generate_validation_table(validation_results)
+generate_validation_table(validation_results, output_dir = output_dir, conf = conf)
 
-# Display validation comparison plot
-print(validation_results$plot)
+# Display and save validation comparison plot
+if (!is.null(validation_results$plot)) {
+  save_plot_if_enabled(validation_results$plot, "validation_comparison_plot", output_dir, conf)
+  print(validation_results$plot)
+}

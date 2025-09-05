@@ -26,7 +26,8 @@ run_sensitivity <- function(data,
                             analysis_type = "year",
                             values,
                             plot_type = "shadow",
-                            conf) {
+                            conf,
+                            output_dir = NULL) {
   # Explicitly define valid options
   valid_analysis_types <- c("year", "threshold", "par", "cutoff")
   valid_plot_types <- c("shadow", "yearly", "cumulative", "par")
@@ -114,10 +115,10 @@ run_sensitivity <- function(data,
 
   # Plot function mapping
   plot_fns <- list(
-    shadow = function(res, var, analysis_type) plot_shadow_sensitivity(res, var, analysis_type),
-    yearly = function(res, var, analysis_type) plot_yearly_deaths(res, var, analysis_type),
-    cumulative = function(res, var, analysis_type) plot_cumulative_deaths(res, var, analysis_type, conf),
-    par = function(res, var, analysis_type) plot_par_sensitivity(res, var, analysis_type)
+    shadow = function(res, var, analysis_type) plot_shadow_sensitivity(res, var, analysis_type, output_dir, conf),
+    yearly = function(res, var, analysis_type) plot_yearly_deaths(res, var, analysis_type, output_dir, conf),
+    cumulative = function(res, var, analysis_type) plot_cumulative_deaths(res, var, analysis_type, config = conf, output_dir = output_dir, conf = conf),
+    par = function(res, var, analysis_type) plot_par_sensitivity(res, var, analysis_type, output_dir, conf)
   )
 
   # Generate plot

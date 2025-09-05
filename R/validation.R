@@ -6,7 +6,7 @@
 #' @param variable Variable to analyze
 #' @param conf Configuration object
 #' @return List containing validation results and plots
-validate_model <- function(data, variable, conf) {
+validate_model <- function(data, variable, conf, output_dir = NULL) {
   # Split data into training and test sets
   train_data <- data %>%
     filter(
@@ -46,7 +46,8 @@ validate_model <- function(data, variable, conf) {
     severity_draws = train_results$severity_draws,
     return_yearly_deaths_adjusted_draws = TRUE,
     return_forecast = TRUE,
-    validation = TRUE
+    validation = TRUE,
+    output_dir = output_dir
   )
 
   # Store the forecast plot
